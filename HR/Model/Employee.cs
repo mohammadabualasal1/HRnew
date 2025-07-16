@@ -22,10 +22,14 @@ namespace HR.Model
 
         [ForeignKey("Manager")]
         public long? ManagerId { get; set;}
-        public Employee? Manager { get; set; }
+        public Employee? Manager { get; set; }// Navigation Proprtey
 
         [ForeignKey("Lookup")]
         public long? PositionId { get; set; }
-        public Lookup? Lookup { get; set; }
+        public Lookup? Lookup { get; set; }// Navigation Proprtey
+
+        [ForeignKey("User")]
+        public long? UserId { get; set; }
+        public User? User { get; set; }// Navigation Proprtey
     }
 }
