@@ -2,6 +2,8 @@
 using HR.Model;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System;
+using System.Linq;
 
 namespace HR.Controllers
 {
@@ -20,6 +22,7 @@ namespace HR.Controllers
         public IActionResult GetAll([FromQuery] FilterDepartmentsDto filterDto)
         {
             var data = from department in _dbContext.Departments
+                       from lookup in _dbContext.Lookups.Where(x => x.Id == department.TypeId).DefaultIfEmpty()
                        where (filterDto.DepartmentName == null || department.Name.ToUpper().Contains(filterDto.DepartmentName.ToUpper())) &&
                        (filterDto.FloorNumber == null || department.FloorNumber == filterDto.FloorNumber )
                        select new DepartmentDto
@@ -27,7 +30,9 @@ namespace HR.Controllers
                            Id = department.Id,
                            Name = department.Name,
                            Description = department.Description,
-                           FloorNumber = department.FloorNumber
+                           FloorNumber = department.FloorNumber,
+                           TypeId = lookup.Id,
+                           TypeName = lookup.Name
                        };
 
 
@@ -42,7 +47,9 @@ namespace HR.Controllers
                 Id = x.Id,
                 Name = x.Name,
                 Description = x.Description,
-                FloorNumber = x.FloorNumber
+                FloorNumber = x.FloorNumber,
+                TypeId = x.Lookup.Id,
+                TypeName = x.Lookup.Name
             }).FirstOrDefault(x => x.Id == Id);
 
             return Ok(department);
@@ -56,7 +63,8 @@ namespace HR.Controllers
                 Id = 0,
                 Name = departmentDto.Name,
                 Description = departmentDto.Description,
-                FloorNumber = departmentDto.FloorNumber
+                FloorNumber = departmentDto.FloorNumber,
+                TypeId = departmentDto.TypeId
             };
 
             _dbContext.Departments.Add(department);
@@ -77,6 +85,7 @@ namespace HR.Controllers
             department.Name = departmentDto.Name;
             department.Description = departmentDto.Description;
             department.FloorNumber = departmentDto.FloorNumber;
+            department.TypeId = departmentDto.TypeId;
             _dbContext.SaveChanges();
             return Ok(); // 200
 

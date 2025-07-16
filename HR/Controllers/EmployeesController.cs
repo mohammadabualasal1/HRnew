@@ -44,6 +44,7 @@ namespace HR.Controllers
                                 ManagerId = employee.ManagerId,
                                 ManagerName = manager.Name,
                                 DepartmentId = employee.DepartmentId,
+                                DepartmentName = department.Name
                             };
             return Ok(data);
         }
