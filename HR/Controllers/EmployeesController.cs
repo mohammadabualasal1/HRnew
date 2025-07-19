@@ -3,9 +3,11 @@ using Microsoft.AspNetCore.Mvc;
 using HR.Model;
 using HR.DTOs.Employees;
 using System.Linq;
+using Microsoft.AspNetCore.Authorization;
 
 namespace HR.Controllers
 {
+    [Authorize] // Authentication / Authorization
     [Route("api/Employees")]// --> Data Annotation
     [ApiController]// --> Data Annotation
     public class EmployeesController : ControllerBase
@@ -18,6 +20,7 @@ namespace HR.Controllers
             _dbContext = dbContext;
         }
 
+        [Authorize(Roles = "HR,Admin")]
         [HttpGet("GetAll")]// --> Data Annotation
         public IActionResult GetAll([FromQuery] FilterEmployeeDto filterDto) // Postion Is Optional // Query Parameter
         {
@@ -75,6 +78,14 @@ namespace HR.Controllers
         [HttpPost("Add")]
         public IActionResult Add([FromBody] SaveEmployeeDto employeeDto )
         {
+            var user = new User() { 
+                Id = 0,
+                UserName = $"{employeeDto.Name}_HR",//Ahmad --> Ahmad_HR
+                HashedPassword = BCrypt.Net.BCrypt.HashPassword($"{employeeDto.Name}@123"), // Ahmad --> Ahmad@123
+                IsAdmin = false
+            };
+            _dbContext.Users.Add(user);
+
             var employee = new Employee()
             {
                 Id = 0, // Ignored
@@ -85,7 +96,8 @@ namespace HR.Controllers
                 StartDate = employeeDto.StartDate,
                 EndDate = employeeDto.EndDate,
                 DepartmentId = employeeDto.DepartmentId,
-                ManagerId = employeeDto.ManagerId
+                ManagerId = employeeDto.ManagerId,
+                User = user
             };
 
             _dbContext.Employees.Add(employee);
