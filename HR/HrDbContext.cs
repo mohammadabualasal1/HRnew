@@ -39,6 +39,9 @@ namespace HR
                 new User { Id = 1, UserName = "Admin", HashedPassword = "$2a$11$pkpybQvqeC0S6e1dTqUrwO/jB0AbZC0fKcUrmYJS/1nmW4a2UC7YW", IsAdmin = true}
                 );
 
+            modelBuilder.Entity<User>().HasIndex(x => x.UserName).IsUnique();
+            modelBuilder.Entity<Employee>().HasIndex(x => x.UserId).IsUnique();
+
         }
 
         // Define Tables

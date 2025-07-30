@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Authorization;
 
 namespace HR.Controllers
 {
-    [Authorize] // Authentication / Authorization
+    //[Authorize] // Authentication / Authorization
     [Route("api/Employees")]// --> Data Annotation
     [ApiController]// --> Data Annotation
     public class EmployeesController : ControllerBase
@@ -105,6 +105,13 @@ namespace HR.Controllers
                     HashedPassword = BCrypt.Net.BCrypt.HashPassword($"{employeeDto.Name}@123"), // Ahmad --> Ahmad@123
                     IsAdmin = false
                 };
+
+                var _user = _dbContext.Users.FirstOrDefault(x => x.UserName.ToUpper() == user.UserName.ToUpper());
+                if(_user != null)
+                {
+                    return BadRequest("Cannot Add this Employee : The Username Already Exist. Please Select another name");
+                }
+
                 _dbContext.Users.Add(user);
 
                 var employee = new Employee()
