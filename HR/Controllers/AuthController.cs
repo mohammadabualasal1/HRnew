@@ -25,26 +25,34 @@ namespace HR.Controllers
         [HttpPost("Login")]
         public IActionResult Login(LoginDto loginDto)
         {
-            // admin, Admin, ADMIN  == Admin // ADMIN == ADMIN
-            var user = _dbContext.Users.FirstOrDefault(x => x.UserName.ToUpper() == loginDto.UserName.ToUpper());
-
-            if(user == null)
+            try
             {
-                return BadRequest("Invalid UserName Or Password");
+                // admin, Admin, ADMIN  == Admin // ADMIN == ADMIN
+                var user = _dbContext.Users.FirstOrDefault(x => x.UserName.ToUpper() == loginDto.UserName.ToUpper());
+
+                if (user == null)
+                {
+                    return BadRequest("Invalid UserName Or Password");
+                }
+                // $2a$11$pkpybQvqeC0S6e1dTqUrwO/jB0AbZC0fKcUrmYJS/1nmW4a2UC7YW  == Admin@123
+                // True  --> Matching Passwords
+                // !True --> False
+                // False --> Not Matching Passwords
+                // !False --> True
+                if (!BCrypt.Net.BCrypt.Verify(loginDto.Password, user.HashedPassword))
+                {
+                    return BadRequest("Invalid UserName Or Password");
+                }
+
+                var token = GenerateJwtToken(user);
+
+                return Ok(token);
             }
-            // $2a$11$pkpybQvqeC0S6e1dTqUrwO/jB0AbZC0fKcUrmYJS/1nmW4a2UC7YW  == Admin@123
-            // True  --> Matching Passwords
-            // !True --> False
-            // False --> Not Matching Passwords
-            // !False --> True
-            if (!BCrypt.Net.BCrypt.Verify(loginDto.Password, user.HashedPassword))
+            catch (Exception ex)
             {
-                return BadRequest("Invalid UserName Or Password");
+                return BadRequest(ex.Message);
             }
-
-            var token = GenerateJwtToken(user);
-
-            return Ok(token);
+            
         }
 
         private string GenerateJwtToken(User user)

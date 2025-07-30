@@ -24,6 +24,8 @@ namespace HR.Controllers
         [HttpGet("GetAll")]// --> Data Annotation
         public IActionResult GetAll([FromQuery] FilterEmployeeDto filterDto) // Postion Is Optional // Query Parameter
         {
+            try
+            {
             var data = from employee in _dbContext.Employees
                        from department in _dbContext.Departments.Where(x => x.Id == employee.DepartmentId).DefaultIfEmpty() // Left Join
                        from manager in _dbContext.Employees.Where(x => x.Id == employee.ManagerId).DefaultIfEmpty() // Left Join
@@ -50,11 +52,21 @@ namespace HR.Controllers
                                 DepartmentName = department.Name
                             };
             return Ok(data);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+
         }
 
         [HttpGet("GetById")]
         public IActionResult GetById([FromQuery] long Id) // 1
         {
+          
+
+            try
+            {
             var employee = _dbContext.Employees.Select(employee => new EmployeeDto
             {
                 Id = employee.Id,
@@ -72,67 +84,94 @@ namespace HR.Controllers
             }).FirstOrDefault(x => x.Id == Id);
 
             return Ok(employee);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
 
         }
 
         [HttpPost("Add")]
         public IActionResult Add([FromBody] SaveEmployeeDto employeeDto )
         {
-            var user = new User() { 
-                Id = 0,
-                UserName = $"{employeeDto.Name}_HR",//Ahmad --> Ahmad_HR
-                HashedPassword = BCrypt.Net.BCrypt.HashPassword($"{employeeDto.Name}@123"), // Ahmad --> Ahmad@123
-                IsAdmin = false
-            };
-            _dbContext.Users.Add(user);
 
-            var employee = new Employee()
+            try
             {
-                Id = 0, // Ignored
-                Name = employeeDto.Name,
-                BirthDate = employeeDto.BirthDate,
-                PositionId = employeeDto.PositionId,
-                IsActive = employeeDto.IsActive,
-                StartDate = employeeDto.StartDate,
-                EndDate = employeeDto.EndDate,
-                DepartmentId = employeeDto.DepartmentId,
-                ManagerId = employeeDto.ManagerId,
-                User = user
-            };
+                var user = new User()
+                {
+                    Id = 0,
+                    UserName = $"{employeeDto.Name}_HR",//Ahmad --> Ahmad_HR
+                    HashedPassword = BCrypt.Net.BCrypt.HashPassword($"{employeeDto.Name}@123"), // Ahmad --> Ahmad@123
+                    IsAdmin = false
+                };
+                _dbContext.Users.Add(user);
 
-            _dbContext.Employees.Add(employee);
-            _dbContext.SaveChanges();
-            return Ok();    
+                var employee = new Employee()
+                {
+                    Id = 0, // Ignored
+                    Name = employeeDto.Name,
+                    BirthDate = employeeDto.BirthDate,
+                    PositionId = employeeDto.PositionId,
+                    IsActive = employeeDto.IsActive,
+                    StartDate = employeeDto.StartDate,
+                    EndDate = employeeDto.EndDate,
+                    DepartmentId = employeeDto.DepartmentId,
+                    ManagerId = employeeDto.ManagerId,
+                    User = user
+                };
+
+                _dbContext.Employees.Add(employee);
+                _dbContext.SaveChanges();
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+  
         }
 
         [HttpPut("Update")]
         public IActionResult Update([FromBody] SaveEmployeeDto employeeDto)
         {
-            var employee = _dbContext.Employees.FirstOrDefault(x => x.Id == employeeDto.Id); // Employee to be updated
 
-            if (employee == null)
+
+            try
             {
-                return BadRequest("Employee Not Found"); //400 
+                var employee = _dbContext.Employees.FirstOrDefault(x => x.Id == employeeDto.Id); // Employee to be updated
+
+                if (employee == null)
+                {
+                    return BadRequest("Employee Not Found"); //400 
+                }
+
+                employee.Name = employeeDto.Name;
+                employee.BirthDate = employeeDto.BirthDate;
+                employee.PositionId = employeeDto.PositionId;
+                employee.IsActive = employeeDto.IsActive;
+                employee.StartDate = employeeDto.StartDate;
+                employee.EndDate = employeeDto.EndDate;
+                employee.DepartmentId = employeeDto.DepartmentId;
+                employee.ManagerId = employeeDto.ManagerId;
+
+
+                _dbContext.SaveChanges();
+                return Ok();
             }
-
-            employee.Name = employeeDto.Name;
-            employee.BirthDate = employeeDto.BirthDate;
-            employee.PositionId = employeeDto.PositionId;
-            employee.IsActive = employeeDto.IsActive;
-            employee.StartDate = employeeDto.StartDate;
-            employee.EndDate = employeeDto.EndDate;
-            employee.DepartmentId = employeeDto.DepartmentId;
-            employee.ManagerId = employeeDto.ManagerId;
-
-
-            _dbContext.SaveChanges();
-            return Ok();
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
 
         [HttpDelete("Delete")]
         public IActionResult Delete([FromQuery] long id)
         {
+            
+            try
+            {
             var employee = _dbContext.Employees.FirstOrDefault(x => x.Id == id); // Employee to be deleted
 
             if (employee == null)
@@ -144,6 +183,11 @@ namespace HR.Controllers
             _dbContext.SaveChanges();
             return Ok();
 
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
     }
 }
