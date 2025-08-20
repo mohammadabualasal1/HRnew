@@ -3,19 +3,20 @@
 
 
 html{
-    background-color: #efeaf7;
+    /* background-color: #efeaf7;
     font-family: sans-serif;
     font-size: 14px;
-    margin: 1% 22%;
+    margin: 1% 22%; */
 
 }
+
 
 
 @media (max-width: 600px){
      html{
         /* background-color: yellow; */
-        font-size: 12px;
-        margin: 1% 4%;
+        /* font-size: 12px;
+        margin: 1% 4%; */
     }
 
 }
