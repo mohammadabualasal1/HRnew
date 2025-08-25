@@ -1,10 +1,12 @@
 import { CommonModule } from '@angular/common';
 import { Component, ElementRef, ViewChild } from '@angular/core';
 import { FormControl, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
-
+import { DatePipe } from '@angular/common';
+import { NgxPaginationModule } from 'ngx-pagination';
 @Component({
   selector: 'app-employees',
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, NgxPaginationModule],
+  providers: [DatePipe], // Depndency Injcution
   templateUrl: './employees.html',
   styleUrl: './employees.css'
 })
@@ -24,6 +26,33 @@ export class Employees {
     },
     {id: 4, name: "Emp4", isActive: true, startDate: new Date(2025, 1, 11), phone: "+964534534534", positionId: 2, positionName: "Developer",
       birthdate: new Date(2001,5,1), departmentId: 2, departmentName: "IT", managerId: 2, managerName : "Emp2"
+    },
+    {id: 5, name: "Emp5", isActive: false, startDate: new Date(2025, 2, 25), phone: "+9622244552", positionId: 3, positionName: "HR",
+      birthdate: new Date(1999,5,1), departmentId: 1, departmentName: "HR", managerId: 1, managerName : "Emp1"
+    },
+    {id: 5, name: "Emp5", isActive: false, startDate: new Date(2025, 2, 25), phone: "+9622244552", positionId: 3, positionName: "HR",
+      birthdate: new Date(1999,5,1), departmentId: 1, departmentName: "HR", managerId: 1, managerName : "Emp1"
+    },
+    {id: 5, name: "Emp5", isActive: false, startDate: new Date(2025, 2, 25), phone: "+9622244552", positionId: 3, positionName: "HR",
+      birthdate: new Date(1999,5,1), departmentId: 1, departmentName: "HR", managerId: 1, managerName : "Emp1"
+    },
+    {id: 5, name: "Emp5", isActive: false, startDate: new Date(2025, 2, 25), phone: "+9622244552", positionId: 3, positionName: "HR",
+      birthdate: new Date(1999,5,1), departmentId: 1, departmentName: "HR", managerId: 1, managerName : "Emp1"
+    },
+    {id: 5, name: "Emp5", isActive: false, startDate: new Date(2025, 2, 25), phone: "+9622244552", positionId: 3, positionName: "HR",
+      birthdate: new Date(1999,5,1), departmentId: 1, departmentName: "HR", managerId: 1, managerName : "Emp1"
+    },
+    {id: 5, name: "Emp5", isActive: false, startDate: new Date(2025, 2, 25), phone: "+9622244552", positionId: 3, positionName: "HR",
+      birthdate: new Date(1999,5,1), departmentId: 1, departmentName: "HR", managerId: 1, managerName : "Emp1"
+    },
+    {id: 5, name: "Emp5", isActive: false, startDate: new Date(2025, 2, 25), phone: "+9622244552", positionId: 3, positionName: "HR",
+      birthdate: new Date(1999,5,1), departmentId: 1, departmentName: "HR", managerId: 1, managerName : "Emp1"
+    },
+    {id: 5, name: "Emp5", isActive: false, startDate: new Date(2025, 2, 25), phone: "+9622244552", positionId: 3, positionName: "HR",
+      birthdate: new Date(1999,5,1), departmentId: 1, departmentName: "HR", managerId: 1, managerName : "Emp1"
+    },
+    {id: 5, name: "Emp5", isActive: false, startDate: new Date(2025, 2, 25), phone: "+9622244552", positionId: 3, positionName: "HR",
+      birthdate: new Date(1999,5,1), departmentId: 1, departmentName: "HR", managerId: 1, managerName : "Emp1"
     },
     {id: 5, name: "Emp5", isActive: false, startDate: new Date(2025, 2, 25), phone: "+9622244552", positionId: 3, positionName: "HR",
       birthdate: new Date(1999,5,1), departmentId: 1, departmentName: "HR", managerId: 1, managerName : "Emp1"
@@ -63,6 +92,12 @@ export class Employees {
     Position: new FormControl(null, [Validators.required]),
     IsActive: new FormControl(true, [Validators.required])
   });
+
+  paginationConfig = { itemsPerPage: 5, currentPage: 1};
+
+  constructor(private _datePipe: DatePipe){
+
+  }
 
 
   saveEmployee(){
@@ -119,19 +154,32 @@ export class Employees {
   editEmployee(id: number){
     let employee = this.employees.find(x => x.id == id);
 
-    if(id != null){
+    if(employee != null){
       this.employeeForm.patchValue({
         Id: employee?.id,
         Name: employee?.name,
         Phone: employee?.phone,
-        StartDate: employee?.startDate,
-        Birthdate: employee?.birthdate,
+        StartDate: this._datePipe.transform(employee?.startDate, 'yyyy-MM-dd'), // yyyy-mm-dd 2025-07-05
+        Birthdate: this._datePipe.transform(employee?.birthdate, 'yyyy-MM-dd'),
         Department: employee?.departmentId,
         Manager: employee?.managerId,
         Position: employee?.positionId,
         IsActive: employee?.isActive
       })
     }
+  }
+
+
+  removeEmployee(id : number){
+    this.employees = this.employees.filter(x => x.id !== id);
+
+    // let index = this.employees.findIndex(x => x.id === id);
+    // this.employees.splice(index, 1);
+  }
+
+
+  changePage(pageNumber : number){
+    this.paginationConfig.currentPage = pageNumber;
   }
 
 }

@@ -4,16 +4,18 @@ import { NgIf, NgFor, NgClass, NgStyle, CommonModule } from '@angular/common';
 import { RandomColor } from './directives/random-color';
 import { FormsModule, FormGroup, FormControl, ReactiveFormsModule, FormControlName, Validators } from '@angular/forms';
 import { ReversePipe } from './pipes/reverse-pipe';
-import { Employees } from './components/employees/employees'
+import { Employees } from './components/employees/employees';
+import { Departments } from './components/departments/departments';
 @Component({ // Decorator
   selector: 'app-root',
-  imports: [//RouterOutlet,
+  imports: [RouterOutlet,
    // RandomColor,
     FormsModule,
     ReactiveFormsModule,
     CommonModule,
     ReversePipe,
-    Employees
+    Employees,
+    Departments
   ],
   templateUrl: './app.html',
   styleUrl: './app.css'
