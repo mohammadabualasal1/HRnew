@@ -3,9 +3,11 @@ import { Component, ElementRef, ViewChild } from '@angular/core';
 import { FormControl, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { DatePipe } from '@angular/common';
 import { NgxPaginationModule } from 'ngx-pagination';
+import { Employee } from '../../interfaces/employee-interface';
+import { ConfirmationDialog } from '../../shared-components/confirmation-dialog/confirmation-dialog';
 @Component({
   selector: 'app-employees',
-  imports: [CommonModule, ReactiveFormsModule, NgxPaginationModule],
+  imports: [CommonModule, ReactiveFormsModule, NgxPaginationModule, ConfirmationDialog],
   providers: [DatePipe], // Depndency Injcution
   templateUrl: './employees.html',
   styleUrl: './employees.css'
@@ -95,8 +97,12 @@ export class Employees {
 
   paginationConfig = { itemsPerPage: 5, currentPage: 1};
 
-  constructor(private _datePipe: DatePipe){
+  deleteDialogTitle : string = "Delete Confirmation";
+  deleteDialogBody : string = "Are you sure you want to delete this employee?";
+  showConfirmationDialog : boolean = false;
+  employeeIdToBeDeleted : number | null = null;
 
+  constructor(private _datePipe: DatePipe){
   }
 
 
@@ -170,8 +176,8 @@ export class Employees {
   }
 
 
-  removeEmployee(id : number){
-    this.employees = this.employees.filter(x => x.id !== id);
+  removeEmployee(){
+    this.employees = this.employees.filter(x => x.id !== this.employeeIdToBeDeleted);
 
     // let index = this.employees.findIndex(x => x.id === id);
     // this.employees.splice(index, 1);
@@ -182,19 +188,20 @@ export class Employees {
     this.paginationConfig.currentPage = pageNumber;
   }
 
+
+  showConfirmDialog(empId : number){
+    this.employeeIdToBeDeleted = empId; // save employee id to be used later
+    this.showConfirmationDialog = true; // show confirmation dialog
+  }
+
+  confrimEmployeeDelete(isConfirmed : boolean){
+    if(isConfirmed){
+      this.removeEmployee();
+    }
+
+    this.employeeIdToBeDeleted = null; // remove saved employee id
+    this.showConfirmationDialog = false; // hide confirmation dialog
+  }
+
 }
 
-export interface Employee{
-  id: number;
-  name: string;
-  positionId?: number;
-  positionName?: string;
-  birthdate?: Date;
-  isActive: boolean;
-  startDate: Date;
-  phone?: string;
-  managerId?: number | null; // Accept Multiple Data Types 
-  managerName?: string | null; // Accept Multiple Data Types 
-  departmentId?: number;
-  departmentName?: string;
-} 
