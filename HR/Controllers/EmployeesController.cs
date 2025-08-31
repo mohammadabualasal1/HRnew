@@ -4,6 +4,7 @@ using HR.Model;
 using HR.DTOs.Employees;
 using System.Linq;
 using Microsoft.AspNetCore.Authorization;
+using HR.DTOs.Shared;
 
 namespace HR.Controllers
 {
@@ -20,7 +21,7 @@ namespace HR.Controllers
             _dbContext = dbContext;
         }
 
-        [Authorize(Roles = "HR,Admin")]
+        //[Authorize(Roles = "HR,Admin")]
         [HttpGet("GetAll")]// --> Data Annotation
         public IActionResult GetAll([FromQuery] FilterEmployeeDto filterDto) // Postion Is Optional // Query Parameter
         {
@@ -196,9 +197,41 @@ namespace HR.Controllers
                 return BadRequest(ex.Message);
             }
         }
+
+        [HttpGet("GetManagersList")]
+        public IActionResult GetManagersList([FromQuery] long? employeeId)
+        {
+            var data = from emp in _dbContext.Employees
+                       from pos in _dbContext.Lookups.Where(x => x.Id == emp.PositionId)
+                       where emp.IsActive &&
+                             emp.Id != employeeId &&  
+                             pos.MajorCode == (int)LookupMajorCodes.EmployeePositions &&
+                             pos.MinorCode == (int)PositionsMinorCodes.Manager 
+                       select new ListDto
+                       {
+                           Id = emp.Id,
+                           Name = emp.Name
+                       };
+
+            return Ok(data);
+
+        }
     }
 }
 
+public enum LookupMajorCodes
+{
+    EmployeePositions = 0,
+    DepartmentTypes = 1,
+    VacationTypes = 2
+}
+
+public enum PositionsMinorCodes
+{
+    HR = 1,
+    Manager = 2,
+    Developer = 3
+}
 
 // Simple Data Type : long, int, string.... | Query Parameter (By Default)
 // Complex Data Type : Model, Dto (object) | Request Body (By Default)

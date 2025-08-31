@@ -1,10 +1,12 @@
 import { CommonModule } from '@angular/common';
-import { Component, ElementRef, ViewChild } from '@angular/core';
+import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { FormControl, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { DatePipe } from '@angular/common';
 import { NgxPaginationModule } from 'ngx-pagination';
 import { Employee } from '../../interfaces/employee-interface';
 import { ConfirmationDialog } from '../../shared-components/confirmation-dialog/confirmation-dialog';
+import { EmployeesService } from '../../services/employees.service';
+import { List } from '../../interfaces/list-interface';
 @Component({
   selector: 'app-employees',
   imports: [CommonModule, ReactiveFormsModule, NgxPaginationModule, ConfirmationDialog],
@@ -12,54 +14,11 @@ import { ConfirmationDialog } from '../../shared-components/confirmation-dialog/
   templateUrl: './employees.html',
   styleUrl: './employees.css'
 })
-export class Employees {
+export class Employees implements OnInit  {
 
   @ViewChild ('closeButton') closeButton: ElementRef | undefined;// Get Element By ID
 
-  employees : Employee[] = [
-    {id: 1, name: "Emp1", isActive: true, startDate: new Date(2025, 11, 21), phone: "+96255895155", positionId: 1, positionName: "Manager",
-      birthdate: new Date(1995,5,1), departmentId: 1, departmentName: "HR", managerId: null, managerName : null
-    },
-    {id: 2, name: "Emp2", isActive: true, startDate: new Date(2025, 6, 21), phone: "+9625466456", positionId: 1, positionName: "Manager",
-      birthdate: new Date(1994,5,1), departmentId: 2, departmentName: "IT", managerId: null, managerName : null
-    },
-    {id: 3, name: "Emp3", isActive: false, startDate: new Date(2025, 5, 21), phone: "+9677777", positionId: 2, positionName: "Developer",
-      birthdate: new Date(2000,5,1), departmentId: 2, departmentName: "IT", managerId: 2, managerName : "Emp2"
-    },
-    {id: 4, name: "Emp4", isActive: true, startDate: new Date(2025, 1, 11), phone: "+964534534534", positionId: 2, positionName: "Developer",
-      birthdate: new Date(2001,5,1), departmentId: 2, departmentName: "IT", managerId: 2, managerName : "Emp2"
-    },
-    {id: 5, name: "Emp5", isActive: false, startDate: new Date(2025, 2, 25), phone: "+9622244552", positionId: 3, positionName: "HR",
-      birthdate: new Date(1999,5,1), departmentId: 1, departmentName: "HR", managerId: 1, managerName : "Emp1"
-    },
-    {id: 5, name: "Emp5", isActive: false, startDate: new Date(2025, 2, 25), phone: "+9622244552", positionId: 3, positionName: "HR",
-      birthdate: new Date(1999,5,1), departmentId: 1, departmentName: "HR", managerId: 1, managerName : "Emp1"
-    },
-    {id: 5, name: "Emp5", isActive: false, startDate: new Date(2025, 2, 25), phone: "+9622244552", positionId: 3, positionName: "HR",
-      birthdate: new Date(1999,5,1), departmentId: 1, departmentName: "HR", managerId: 1, managerName : "Emp1"
-    },
-    {id: 5, name: "Emp5", isActive: false, startDate: new Date(2025, 2, 25), phone: "+9622244552", positionId: 3, positionName: "HR",
-      birthdate: new Date(1999,5,1), departmentId: 1, departmentName: "HR", managerId: 1, managerName : "Emp1"
-    },
-    {id: 5, name: "Emp5", isActive: false, startDate: new Date(2025, 2, 25), phone: "+9622244552", positionId: 3, positionName: "HR",
-      birthdate: new Date(1999,5,1), departmentId: 1, departmentName: "HR", managerId: 1, managerName : "Emp1"
-    },
-    {id: 5, name: "Emp5", isActive: false, startDate: new Date(2025, 2, 25), phone: "+9622244552", positionId: 3, positionName: "HR",
-      birthdate: new Date(1999,5,1), departmentId: 1, departmentName: "HR", managerId: 1, managerName : "Emp1"
-    },
-    {id: 5, name: "Emp5", isActive: false, startDate: new Date(2025, 2, 25), phone: "+9622244552", positionId: 3, positionName: "HR",
-      birthdate: new Date(1999,5,1), departmentId: 1, departmentName: "HR", managerId: 1, managerName : "Emp1"
-    },
-    {id: 5, name: "Emp5", isActive: false, startDate: new Date(2025, 2, 25), phone: "+9622244552", positionId: 3, positionName: "HR",
-      birthdate: new Date(1999,5,1), departmentId: 1, departmentName: "HR", managerId: 1, managerName : "Emp1"
-    },
-    {id: 5, name: "Emp5", isActive: false, startDate: new Date(2025, 2, 25), phone: "+9622244552", positionId: 3, positionName: "HR",
-      birthdate: new Date(1999,5,1), departmentId: 1, departmentName: "HR", managerId: 1, managerName : "Emp1"
-    },
-    {id: 5, name: "Emp5", isActive: false, startDate: new Date(2025, 2, 25), phone: "+9622244552", positionId: 3, positionName: "HR",
-      birthdate: new Date(1999,5,1), departmentId: 1, departmentName: "HR", managerId: 1, managerName : "Emp1"
-    },
-  ];
+  employees : Employee[] = [];
 
   employeesTableColumns: string[] = ["#", "Name", "Phone", "Birthdate","Status", "Start Date", "Position", "Department", "Manager"];
 
@@ -76,11 +35,7 @@ export class Employees {
     {id:3, name: "HR"}
   ];
 
-  managers = [
-    {id: null, name: "Select Manager"},
-    {id: 1, name: "Emp1"},
-    {id: 2, name: "Emp2"}
-  ];
+  managers : List[] = [];
 
 
   employeeForm : FormGroup = new FormGroup({
@@ -102,7 +57,77 @@ export class Employees {
   showConfirmationDialog : boolean = false;
   employeeIdToBeDeleted : number | null = null;
 
-  constructor(private _datePipe: DatePipe){
+  constructor(private _datePipe: DatePipe,
+    private _employeeService : EmployeesService
+  ){
+
+  }
+
+  ngOnInit(): void {
+    this.loadEmployees();
+    this.loadManagersList();
+  }
+  
+  ngOnDestroy(){
+    console.log("Component Detroyed");
+  }
+
+  
+
+  loadEmployees(){
+    this.employees = [];
+
+   this._employeeService.getAll().subscribe(
+    {
+      next : (res : any) => { // Succesful Request
+        if(res?.length > 0){
+          
+          res.forEach((x : any) => {
+            let employee : Employee = {
+              id: x.id,
+              name: x.name,
+              phone: x.phone,
+              birthdate: x.birthDate,
+              isActive: x.isActive,
+              startDate: x.startDate,
+              positionId: x.positionId,
+              positionName: x.positionName,
+              departmentId: x.departmentId,
+              departmentName: x.departmentName,
+              managerId: x.managerId,
+              managerName: x.managerName
+            };
+            this.employees.push(employee);
+          });
+        }
+        else{
+        }
+      },
+      error : err => { // Failed Request | 400, 500
+        console.log(err.message);
+      }
+    }
+   );
+  }
+
+  loadManagersList(employeeId?:number){
+    this.managers = [
+      {id: null, name: "Select Manager"}
+    ];
+
+    this._employeeService.getManagers().subscribe({
+      next: (res : any) =>{
+        if(res?.length > 0){
+          res.forEach((x : any)=>{
+            let manager : List = {id: x.id, name: x.name};
+            this.managers.push(manager);
+          })
+        }
+      },
+      error : err => {
+        console.log(err.message);
+      }
+    })
   }
 
 
