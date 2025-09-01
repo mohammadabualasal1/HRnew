@@ -7,6 +7,9 @@ import { Employee } from '../../interfaces/employee-interface';
 import { ConfirmationDialog } from '../../shared-components/confirmation-dialog/confirmation-dialog';
 import { EmployeesService } from '../../services/employees.service';
 import { List } from '../../interfaces/list-interface';
+import { DepartmentsService } from '../../services/departments.service';
+import { LookupsService } from '../../services/lookups.service';
+import { LookupsMajorCodes } from '../../enums/major-codes';
 @Component({
   selector: 'app-employees',
   imports: [CommonModule, ReactiveFormsModule, NgxPaginationModule, ConfirmationDialog],
@@ -22,18 +25,9 @@ export class Employees implements OnInit  {
 
   employeesTableColumns: string[] = ["#", "Name", "Phone", "Birthdate","Status", "Start Date", "Position", "Department", "Manager"];
 
-  departments = [
-    {id: null, name: "Select Department"},
-    {id: 1, name:"HR"},
-    {id: 2, name:"IT"}
-  ];
+  departments : List[]= [];
 
-  positions = [
-    {id: null, name: "Select Position"},
-    {id:1, name: "Manager"},
-    {id:2, name: "Developer"},
-    {id:3, name: "HR"}
-  ];
+  positions : List[] = [];
 
   managers : List[] = [];
 
@@ -58,12 +52,14 @@ export class Employees implements OnInit  {
   employeeIdToBeDeleted : number | null = null;
 
   constructor(private _datePipe: DatePipe,
-    private _employeeService : EmployeesService
+    private _employeeService : EmployeesService,
+    private _departmentsService : DepartmentsService,
+    private _lookupsService : LookupsService
   ){
 
   }
 
-  ngOnInit(): void {
+  ngOnInit(): void { // Life Cycle Hook
     this.loadEmployees();
     this.loadManagersList();
   }
@@ -115,7 +111,7 @@ export class Employees implements OnInit  {
       {id: null, name: "Select Manager"}
     ];
 
-    this._employeeService.getManagers().subscribe({
+    this._employeeService.getManagers(employeeId).subscribe({
       next: (res : any) =>{
         if(res?.length > 0){
           res.forEach((x : any)=>{
@@ -130,43 +126,83 @@ export class Employees implements OnInit  {
     })
   }
 
+  loadDepartmentsList(){
+
+    this.departments = [
+      {id: null, name:"Select Department"}
+    ];
+
+    this._departmentsService.getDepartmentsList().subscribe({
+      next: (res : any) => {
+        if(res?.length > 0){
+          this.departments = this.departments.concat(
+            res.map((x : any) => ({id: x.id, name: x.name} as List))
+          )
+        }
+      },
+      error: err => {
+        console.log(err.message);
+      }
+    })
+  }
+
+  loadPositionsList(){
+    this.positions = [
+      {id: null, name: "Select Position"}
+    ];
+
+    this._lookupsService.getByMajorCode(LookupsMajorCodes.Positions).subscribe({
+      next: (res : any) => {
+        if(res?.length > 0){
+          this.positions = this.positions.concat(
+            res.map((x : any) => ({id: x.id, name: x.name} as List))
+          )
+        }
+      },
+      error: err => {
+        console.log(err.message);
+      }
+    })
+  }
+
+
+
 
   saveEmployee(){
-
-    if(!this.employeeForm.value.Id){// Add Employee
+    let employeeId = this.employeeForm.value.Id ?? 0;
     let newEmp : Employee = {
-      id: this.employees[this.employees.length - 1].id + 1,
+      id: employeeId,
       name: this.employeeForm.value.Name,
       phone: this.employeeForm.value.Phone,
       birthdate: this.employeeForm.value.Birthdate,
       startDate: this.employeeForm.value.StartDate,
       isActive: this.employeeForm.value.IsActive,
       departmentId: this.employeeForm.value.Department,
-      departmentName: this.departments.find(x => x.id == this.employeeForm.value.Department)?.name,
       managerId: this.employeeForm.value.Manager,
-      managerName: this.employeeForm.value.Manager? this.managers.find(x => x.id == this.employeeForm.value.Manager)?.name : null,
       positionId: this.employeeForm.value.Position,
-      positionName: this.positions.find(x => x.id == this.employeeForm.value.Position)?.name
     };
 
-    this.employees.push(newEmp);
+    if(!this.employeeForm.value.Id){// Add Employee
+    this._employeeService.add(newEmp).subscribe({
+      next: res =>{
+        this.loadEmployees();
+      },
+      error: err =>{
+        console.log(err.message);
+      }
+    })
     }
     else{// Edit Employee
-      let index = this.employees.findIndex(x => x.id == this.employeeForm.value.Id);// Returns the index
 
 
-      this.employees[index].name = this.employeeForm.value.Name;
-      this.employees[index].phone = this.employeeForm.value.Phone;
-      this.employees[index].birthdate = this.employeeForm.value.Birthdate;
-      this.employees[index].isActive = this.employeeForm.value.IsActive;
-      this.employees[index].startDate = this.employeeForm.value.StartDate;
-      this.employees[index].departmentId = this.employeeForm.value.Department;
-      this.employees[index].departmentName =  this.departments.find(x => x.id == this.employeeForm.value.Department)?.name;
-      this.employees[index].positionId = this.employeeForm.value.Position;
-      this.employees[index].positionName = this.positions.find(x => x.id == this.employeeForm.value.Position)?.name;
-      this.employees[index].managerId = this.employeeForm.value.Manager;
-      this.employees[index].managerName =  this.employeeForm.value.Manager? this.managers.find(x => x.id == this.employeeForm.value.Manager)?.name : null;
-
+      this._employeeService.update(newEmp).subscribe({
+      next: res =>{
+        this.loadEmployees();
+      },
+      error: err =>{
+        console.log(err.message);
+      }
+    })
     }
 
 
@@ -183,6 +219,7 @@ export class Employees implements OnInit  {
 
 
   editEmployee(id: number){
+    this.loadSaveDialog(id);
     let employee = this.employees.find(x => x.id == id);
 
     if(employee != null){
@@ -226,6 +263,14 @@ export class Employees implements OnInit  {
 
     this.employeeIdToBeDeleted = null; // remove saved employee id
     this.showConfirmationDialog = false; // hide confirmation dialog
+  }
+
+
+  loadSaveDialog(employeeId?: number){
+    this.clearEmployeeForm();
+    this.loadManagersList(employeeId);
+    this.loadDepartmentsList();
+    this.loadPositionsList();
   }
 
 }

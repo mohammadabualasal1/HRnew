@@ -5,6 +5,7 @@ using HR.DTOs.Employees;
 using System.Linq;
 using Microsoft.AspNetCore.Authorization;
 using HR.DTOs.Shared;
+using HR.Enums;
 
 namespace HR.Controllers
 {
@@ -36,7 +37,7 @@ namespace HR.Controllers
                              (filterDto.EmployeeName == null || employee.Name.ToUpper().Contains(filterDto.EmployeeName.ToUpper())) &&
                              (filterDto.IsActive == null || employee.IsActive == filterDto.IsActive)
 
-                       orderby employee.Id
+                       orderby employee.Id descending
                             select new EmployeeDto 
                             {
                                 Id = employee.Id,
@@ -120,6 +121,7 @@ namespace HR.Controllers
                     Id = 0, // Ignored
                     Name = employeeDto.Name,
                     BirthDate = employeeDto.BirthDate,
+                    Phone = employeeDto.Phone,
                     PositionId = employeeDto.PositionId,
                     IsActive = employeeDto.IsActive,
                     StartDate = employeeDto.StartDate,
@@ -158,6 +160,7 @@ namespace HR.Controllers
                 employee.BirthDate = employeeDto.BirthDate;
                 employee.PositionId = employeeDto.PositionId;
                 employee.IsActive = employeeDto.IsActive;
+                employee.Phone = employeeDto.Phone;
                 employee.StartDate = employeeDto.StartDate;
                 employee.EndDate = employeeDto.EndDate;
                 employee.DepartmentId = employeeDto.DepartmentId;
@@ -219,19 +222,8 @@ namespace HR.Controllers
     }
 }
 
-public enum LookupMajorCodes
-{
-    EmployeePositions = 0,
-    DepartmentTypes = 1,
-    VacationTypes = 2
-}
 
-public enum PositionsMinorCodes
-{
-    HR = 1,
-    Manager = 2,
-    Developer = 3
-}
+
 
 // Simple Data Type : long, int, string.... | Query Parameter (By Default)
 // Complex Data Type : Model, Dto (object) | Request Body (By Default)
