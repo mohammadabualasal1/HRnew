@@ -183,16 +183,21 @@ namespace HR.Controllers
             
             try
             {
-            var employee = _dbContext.Employees.FirstOrDefault(x => x.Id == id); // Employee to be deleted
+                var employee = _dbContext.Employees.FirstOrDefault(x => x.Id == id); // Employee to be deleted
+                if (employee == null)
+                {
+                    return BadRequest("Employee Not Found"); //400 
+                }
 
-            if (employee == null)
-            {
-                return BadRequest("Employee Not Found"); //400 
-            }
+                var employeeAssociate = _dbContext.Employees.FirstOrDefault(x => x.ManagerId == id); // Employee Is Manager
+                if(employeeAssociate != null)
+                {
+                    return BadRequest("Managers with assigned employees cannot be deleted.");
+                }
 
-            _dbContext.Employees.Remove(employee);
-            _dbContext.SaveChanges();
-            return Ok();
+                _dbContext.Employees.Remove(employee);
+                _dbContext.SaveChanges();
+                return Ok();
 
             }
             catch (Exception ex)

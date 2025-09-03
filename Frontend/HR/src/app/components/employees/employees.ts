@@ -23,14 +23,19 @@ export class Employees implements OnInit  {
 
   employees : Employee[] = [];
 
-  employeesTableColumns: string[] = ["#", "Name", "Phone", "Birthdate","Status", "Start Date", "Position", "Department", "Manager"];
+  employeesTableColumns: string[] = ["#","Image", "Name", "Phone", "Birthdate","Status", "Start Date", "Position", "Department", "Manager"];
 
   departments : List[]= [];
 
   positions : List[] = [];
 
   managers : List[] = [];
-
+  
+  employeeStatusList: List[] = [
+    {id: null, name : "Select Status"},
+    {id: true, name:"Active"},
+    {id: false, name:"Inactive"},
+  ]
 
   employeeForm : FormGroup = new FormGroup({
     Id: new FormControl(null),
@@ -41,8 +46,15 @@ export class Employees implements OnInit  {
     Department: new FormControl(null, [Validators.required]),
     Manager: new FormControl(null),
     Position: new FormControl(null, [Validators.required]),
-    IsActive: new FormControl(true, [Validators.required])
+    IsActive: new FormControl(true, [Validators.required]),
+    Image: new FormControl(null)
   });
+
+  searchFilterForm: FormGroup = new FormGroup({
+    Name: new FormControl(null),
+    PositionId: new FormControl(null),
+    Status: new FormControl(null)
+  })
 
   paginationConfig = { itemsPerPage: 5, currentPage: 1};
 
@@ -61,19 +73,31 @@ export class Employees implements OnInit  {
 
   ngOnInit(): void { // Life Cycle Hook
     this.loadEmployees();
-    this.loadManagersList();
+    this.loadPositionsList();
   }
   
   ngOnDestroy(){
     console.log("Component Detroyed");
   }
 
+  uploadImage(event : any){
+    this.employeeForm.patchValue({
+      Image: event.target.files[0]
+    });
+    
+  }
   
 
   loadEmployees(){
     this.employees = [];
 
-   this._employeeService.getAll().subscribe(
+    let searchObj = {
+      name: this.searchFilterForm.value.Name,
+      positionId: this.searchFilterForm.value.PositionId,
+      status: this.searchFilterForm.value.Status
+    };
+
+   this._employeeService.getAll(searchObj).subscribe(
     {
       next : (res : any) => { // Succesful Request
         if(res?.length > 0){
@@ -100,7 +124,7 @@ export class Employees implements OnInit  {
         }
       },
       error : err => { // Failed Request | 400, 500
-        console.log(err.message);
+        console.log(err.error.message ?? err.error ?? "Unexpected Error");
       }
     }
    );
@@ -121,7 +145,7 @@ export class Employees implements OnInit  {
         }
       },
       error : err => {
-        console.log(err.message);
+        console.log(err.error.message ?? err.error ?? "Unexpected Error");
       }
     })
   }
@@ -141,7 +165,7 @@ export class Employees implements OnInit  {
         }
       },
       error: err => {
-        console.log(err.message);
+        console.log(err.error.message ?? err.error ?? "Unexpected Error");
       }
     })
   }
@@ -160,7 +184,7 @@ export class Employees implements OnInit  {
         }
       },
       error: err => {
-        console.log(err.message);
+        console.log(err.error.message ?? err.error ?? "Unexpected Error");
       }
     })
   }
@@ -180,6 +204,7 @@ export class Employees implements OnInit  {
       departmentId: this.employeeForm.value.Department,
       managerId: this.employeeForm.value.Manager,
       positionId: this.employeeForm.value.Position,
+      image: this.employeeForm.value.Image
     };
 
     if(!this.employeeForm.value.Id){// Add Employee
@@ -188,7 +213,7 @@ export class Employees implements OnInit  {
         this.loadEmployees();
       },
       error: err =>{
-        console.log(err.message);
+        console.log(err.error.message ?? err.error ?? "Unexpected Error");
       }
     })
     }
@@ -200,7 +225,7 @@ export class Employees implements OnInit  {
         this.loadEmployees();
       },
       error: err =>{
-        console.log(err.message);
+        console.log(err.error.message ?? err.error ?? "Unexpected Error");
       }
     })
     }
@@ -239,10 +264,17 @@ export class Employees implements OnInit  {
 
 
   removeEmployee(){
-    this.employees = this.employees.filter(x => x.id !== this.employeeIdToBeDeleted);
+    if(this.employeeIdToBeDeleted){
 
-    // let index = this.employees.findIndex(x => x.id === id);
-    // this.employees.splice(index, 1);
+      this._employeeService.delete(this.employeeIdToBeDeleted).subscribe({
+        next: res => {
+          this.loadEmployees();
+        },
+        error: err => {
+          alert(err.error.message ?? err.error ?? "Unexpected Error");
+        }
+      });
+    }
   }
 
 
